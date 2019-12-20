@@ -22,22 +22,23 @@ vref = 0
 def mass_update(t, x, u, params):
     # Return the derivative of the state
     return np.array([
-        x[1],               # dx
-        u[1] + np.sin(2*t)  # dv
+        x[1],               # dx = v
+        u[1]   # dv = u + d
     ])
 
 def mass_output(t, x, u, params):
-    return x                            # return x, v (full state)
+    return x # return x, v (full state)
 
 unit_mass = ct.NonlinearIOSystem(
     mass_update, mass_output, states=2, name='unit_mass',
     inputs=('ux','uv'),
     outputs=('x', 'v'))
 
-
-
+###############################################################################
+# Control 
+###############################################################################
+# u = -k1*x -k2*v
 def control_output(t, x, u, params):
-    
     return  np.array([0,k1*u[0] + k2*u[1]])
 
 # Define the controller as an input/output system
@@ -47,43 +48,57 @@ controller = ct.NonlinearIOSystem(
     outputs=('ux','uv')                            # system outputs
 )
 
-def trajgen_output(t, x, u, params):
+###############################################################################
+# Target
+###############################################################################
+def target_output(t, x, u, params):
     xref, vref = u
     return np.array([xref,vref])
 
 # Define the trajectory generator as an input/output system
-trajgen = ct.NonlinearIOSystem(
-    None, trajgen_output, name='trajgen',
+target = ct.NonlinearIOSystem(
+    None, target_output, name='target',
     inputs=('xref', 'vref'),
     outputs=('x', 'v'))
 
-
+###############################################################################
+# System Connect
+###############################################################################
 fastest = ct.InterconnectedSystem(
     # List of subsystems
-    (trajgen,controller, unit_mass), name='fastest',
+    (target,controller, unit_mass), name='fastest',
 
     # Interconnections between  subsystems
     connections=(
-        ('controller.x','trajgen.x','-unit_mass.x'),
-        ('controller.v','trajgen.v','-unit_mass.v'),
+        ('controller.x','target.x','-unit_mass.x'),
+        ('controller.v','target.v','-unit_mass.v'),
         ('unit_mass.ux', 'controller.ux'),
         ('unit_mass.uv', 'controller.uv'),
     ),
 
     # System inputs
-    inplist=['trajgen.xref', 'trajgen.vref'],
-    inputs=['xref', 'vref'],
+    inplist=['target.xref', 'target.vref'],
+    inputs=['xref','vref'],
 
     #  System outputs
     outlist=['unit_mass.x', 'unit_mass.v'],
     outputs=['x', 'v']
 )
 
+###############################################################################
+# Input Output Response
+###############################################################################
+# time of response
 T = np.linspace(0, 10, 100)
- 
+# the response
 tout, yout = ct.input_output_response(fastest, T, [xref*np.ones(len(T)),vref*np.ones(len(T))],X0=[1,-2])
 
+plt.close()
 plt.figure()
 plt.grid()
-plt.plot(tout,yout[0])
-plt.plot(tout,yout[1])
+plt.xlabel("Time(s)")
+plt.plot(tout,yout[0],label='distance(m)')
+plt.plot(tout,yout[1],label='velocity(m/s)')
+plt.legend()
+plt.title('unit mass modle(without disturbance)')
+plt.show()
