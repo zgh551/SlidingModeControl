@@ -9,8 +9,8 @@ import numpy as np
 import control as ct
 import matplotlib.pyplot as plt
 
-k1 = 3
-k2 = 4
+c = 1.5
+rho = 2.0
 
 xref = 0
 vref = 0
@@ -39,7 +39,7 @@ unit_mass = ct.NonlinearIOSystem(
 ###############################################################################
 # u = -k1*x -k2*v
 def control_output(t, x, u, params):
-    return  np.array([0,k1*u[0] + k2*u[1]])
+    return  np.array([0,c*u[1] + rho*np.sign(c*u[0] + u[1])])
 
 # Define the controller as an input/output system
 controller = ct.NonlinearIOSystem(
@@ -89,16 +89,33 @@ fastest = ct.InterconnectedSystem(
 # Input Output Response
 ###############################################################################
 # time of response
-T = np.linspace(0, 10, 100)
+T = np.linspace(0, 8, 10000)
 # the response
 tout, yout = ct.input_output_response(fastest, T, [xref*np.ones(len(T)),vref*np.ones(len(T))],X0=[1,-2])
 
 plt.close()
 plt.figure()
+plt.title("Sliding Variable")
+plt.xlabel("Time[s]")
+plt.plot(tout,c*yout[0]+yout[1])
+
+plt.figure()
 plt.grid()
+plt.title("Asymptotic convergence for f(x,v,t)=sin(2t)")
 plt.xlabel("Time(s)")
 plt.plot(tout,yout[0],label='distance(m)')
 plt.plot(tout,yout[1],label='velocity(m/s)')
 plt.legend()
 plt.title('unit mass modle(without disturbance)')
+plt.figure()
+plt.title("Phase portrait")
+plt.xlabel("x")
+plt.ylabel("v")
+plt.plot(yout[0],yout[1])
+
+plt.figure()
+plt.title("Sliding mode control")
+plt.xlabel("Time[s]")
+for i in range(len(tout)):
+    plt.plot(tout[i],c*yout[1][i] + rho*np.sign(c*yout[0][i] + yout[1][i],'*'))
 plt.show()
