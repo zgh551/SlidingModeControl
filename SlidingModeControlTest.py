@@ -117,5 +117,5 @@ plt.figure()
 plt.title("Sliding mode control")
 plt.xlabel("Time[s]")
 for i in range(len(tout)):
-    plt.plot(tout[i],c*yout[1][i] + rho*np.sign(c*yout[0][i] + yout[1][i],'*'))
+    plt.plot(tout[i],c*yout[1][i] + rho*np.sign(c*yout[0][i] + yout[1][i]),'*')
 plt.show()
