@@ -37,7 +37,7 @@ unit_mass = ct.NonlinearIOSystem(
 ###############################################################################
 # Control 
 ###############################################################################
-# u = -k1*x -k2*v
+# u = c*v + rho*sign(c*x + v)
 def control_output(t, x, u, params):
     return  np.array([0,c*u[1] + rho*np.sign(c*u[0] + u[1])])
 
@@ -99,7 +99,7 @@ plt.title("Sliding Variable")
 plt.xlabel("Time[s]")
 plt.plot(tout,c*yout[0]+yout[1])
 
-plt.figure()
+plt.figure() 
 plt.grid()
 plt.title("Asymptotic convergence for f(x,v,t)=sin(2t)")
 plt.xlabel("Time(s)")
@@ -113,9 +113,12 @@ plt.xlabel("x")
 plt.ylabel("v")
 plt.plot(yout[0],yout[1])
 
+u = []
+for i in range(len(tout)):
+    u.append(c*yout[1][i] + rho*np.sign(c*yout[0][i] + yout[1][i]))
+    
 plt.figure()
 plt.title("Sliding mode control")
 plt.xlabel("Time[s]")
-for i in range(len(tout)):
-    plt.plot(tout[i],c*yout[1][i] + rho*np.sign(c*yout[0][i] + yout[1][i]),'*')
+plt.plot(tout,u)
 plt.show()
