@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 c = 1.5
 rho = 2.0
-eps = 0.01
+eps = 0.03
 
 xref = 0
 vref = 0
@@ -99,11 +99,13 @@ y = []
 for i in x:
     y.append(i/(np.fabs(i) + eps))
 plt.figure()
+plt.grid()
 plt.title("Sigmoid Function")
 plt.xlabel("sigma")
 plt.plot(x,y)
 
 plt.figure()
+plt.grid()
 plt.title("Sliding Variable")
 plt.xlabel("Time[s]")
 plt.plot(tout,c*yout[0]+yout[1])
@@ -116,7 +118,9 @@ plt.plot(tout,yout[0],label='distance(m)')
 plt.plot(tout,yout[1],label='velocity(m/s)')
 plt.legend()
 plt.title('unit mass modle(without disturbance)')
+
 plt.figure()
+plt.grid()
 plt.title("Phase portrait")
 plt.xlabel("x")
 plt.ylabel("v")
@@ -124,9 +128,10 @@ plt.plot(yout[0],yout[1])
 
 u = []
 for i in range(len(tout)):
-    u.append(c*yout[1][i] + rho*(c*yout[0][i] + yout[1][i])/(np.fabs(c*yout[0][i] + yout[1][i]) + eps))
+    u.append(-c*yout[1][i] - rho*(c*yout[0][i] + yout[1][i])/(np.fabs(c*yout[0][i] + yout[1][i]) + eps))
     
 plt.figure()
+plt.grid()
 plt.title("Sliding mode control")
 plt.xlabel("Time[s]")
 plt.plot(tout,u)

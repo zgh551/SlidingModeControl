@@ -122,3 +122,5 @@ plt.title("Sliding mode control")
 plt.xlabel("Time[s]")
 plt.plot(tout,u)
 plt.show()
+
+# 仿真时间较长，轻耐心等待!
