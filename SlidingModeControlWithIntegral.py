@@ -4,7 +4,7 @@ Created on Thu Dec 19 20:20:31 2019
 
 @author: zhuguohua
 """
-
+# 使用控制率的微分来平滑控制输出，减少抖振
 import numpy as np
 import control as ct
 import matplotlib.pyplot as plt
@@ -22,9 +22,12 @@ x1_0 = 1
 x2_0 = -2
 u_0  = 0
 
-
 def f(x1,x2,t):
     return np.sin(2*t)
+
+###############################################################################
+# Mass Modle 
+###############################################################################
 # System state: x1,x2,u
 # System input: v
 # System output: x1,x2,u
@@ -54,8 +57,11 @@ unit_mass = ct.NonlinearIOSystem(
 # System output: v
 # System parameters: none
 def control_output(t, x, u, params):
-    s = u[2] + (c + c_bar)*u[1] + c*c_bar*u[0] + f(u[0],u[1],t)
-    return np.array([c*c_bar*u[1] + (c + c_bar)*u[2] + rho*np.sign(s)])
+    temp_s = u[2] + (c + c_bar)*u[1] + c*c_bar*u[0] + f(u[0],u[1],t)
+    
+#    temp_s = c*u[0] + u[1]
+    
+    return np.array([c*c_bar*u[1] + (c + c_bar)*u[2] + rho*np.sign(temp_s)])
 
 # Define the controller as an input/output system
 controller = ct.NonlinearIOSystem(
@@ -113,10 +119,11 @@ s = []
 for i in range(len(tout)):
     s.append(yout[2][i] + (c + c_bar)*yout[1][i] + c*c_bar*yout[0][i] + f(yout[0][i],yout[1][i],tout[i]))
 
-#v = []
-#for i in range(len(tout)):
-#    v.append ( -c*c_bar*yout[1][i] - (c + c_bar)*yout[2][i] + rho*np.sign(s[i]) )
-
+sigma = []
+sigma_d = []
+for i in range(len(tout)):
+    sigma.append(yout[1][i] + c*yout[0][i])
+    sigma_d.append(yout[2][i] + c*yout[1][i] + f(yout[0][i],yout[1][i],tout[i]))
 
 plt.figure()
 plt.grid()
@@ -142,6 +149,13 @@ plt.title("Phase portrait")
 plt.xlabel("x1")
 plt.ylabel("x2")
 plt.plot(yout[0],yout[1])
+
+plt.figure()
+plt.grid()
+plt.title("Phase portrait")
+plt.xlabel("sigma")
+plt.ylabel("sigma_d")
+plt.plot(sigma,sigma_d)
 
 plt.figure()
 plt.grid()
